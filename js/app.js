@@ -1,6 +1,7 @@
 const productsfilter = document.getElementById('productsfilter')
 const productslist = document.getElementById('productslist')
-let data = []
+let data = [];  
+const Base_API = 'https://69c575498a5b6e2dec2c8520.mockapi.io/api/pr1/products'
 
 // Category fetch start
 fetch('https://69c575498a5b6e2dec2c8520.mockapi.io/api/pr1/productfilter')
@@ -19,47 +20,49 @@ fetch('https://69c575498a5b6e2dec2c8520.mockapi.io/api/pr1/productfilter')
 
 
 // Product fetch start
-fetch('https://69c575498a5b6e2dec2c8520.mockapi.io/api/pr1/products')
+fetch(Base_API)
 .then(res => res.json())
 .then(resData => {
     data = resData;
-    renderData(data)
+    // renderData(data)
+    getAllData(data)
 })
 
-function renderData(data) {
-    productslist.innerHTML = data.map(p =>
-        `
-        <div class="product flex-auto h-full border-1 border-gray-300 rounded-xl flex flex-col items-center gap-3 p-6">
-                        <div>
-                            <img class="w-full h-[150px] object-contain overflow-hidden" src="${p.image}" alt="product photo">
-                        </div>
-                        <div class="text-sm">
-                            <div class="flex items-center flex-col gap-3">
-                                  <p class="text-gray-500">${p.category}</p>
-                                  <h5 class="text-sm">${p.name}</h5>
-                            </div>
-                            <div class="stars flex items-center gap-1 py-3">
-                                <div class="flex gap-1">
-                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
-                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
-                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
-                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
-                                    <i class="fa-solid fa-star-half-stroke" style="color: rgb(234, 179, 8);"></i>
-                                </div>
-                                <div class="flex gap-2 font-medium">
-                                    <p>4.5</p>
-                                    <p>(${p.commentcount})</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-center gap-5">
-                                <p>${p.price} $</p>
-                                <button class="bg-[#17a719] text-white px-3 py-1 rounded-sm cursor-pointer">+ Add</button>
-                            </div>
-                        </div>
-        </div>
-        `
-    ).join('')
-}
+// OLD RenderData function start
+// function renderData(data) {
+//     productslist.innerHTML = data.map(p =>
+//         `
+//         <div class="product flex-auto h-full border-1 border-gray-300 rounded-xl flex flex-col items-center gap-3 p-6">
+//                         <div>
+//                             <img class="w-full h-[150px] object-contain overflow-hidden" src="${p.image}" alt="product photo">
+//                         </div>
+//                         <div class="text-sm">
+//                             <div class="flex items-center flex-col gap-3">
+//                                   <p class="text-gray-500">${p.category}</p>
+//                                   <h5 class="text-sm">${p.name}</h5>
+//                             </div>
+//                             <div class="stars flex items-center gap-1 py-3">
+//                                 <div class="flex gap-1">
+//                                     <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+//                                     <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+//                                     <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+//                                     <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+//                                     <i class="fa-solid fa-star-half-stroke" style="color: rgb(234, 179, 8);"></i>
+//                                 </div>
+//                                 <div class="flex gap-2 font-medium">
+//                                     <p>4.5</p>
+//                                     <p>(${p.commentcount})</p>
+//                                 </div>
+//                             </div>
+//                             <div class="flex items-center justify-center gap-5">
+//                                 <p>${p.price} $</p>
+//                                 <button class="bg-[#17a719] text-white px-3 py-1 rounded-sm cursor-pointer">+ Add</button>
+//                             </div>
+//                         </div>
+//         </div>
+//         `
+//     ).join('')
+// }
 // End
 
 
@@ -69,11 +72,13 @@ function productFilter(category) {
     const filtrdata = data.filter(item => item.category === category)
     if( filtrdata.length === 0 ) {
         msj.innerHTML = 'Bu kategoriyaya aid mehsul tükənib halhazırda stokta yoxdur'
-        renderData([])
+        // renderData([])
+        getAllData([])
     }
     else {
         msj.innerHTML = ''
-        renderData(filtrdata)   
+        // renderData(filtrdata)   
+        getAllData(filtrdata)
     }
 }
 // End
@@ -86,9 +91,10 @@ searchinput.addEventListener('input', (s) => {
 
 function mehsulaxtarma(searchinput) {
     const keyword = searchinput.toLowerCase();
-    const axtarilanmehsul = data.filter(item => item.name.toLowerCase().includes(keyword))
+    const axtarilanmehsul = data.filter(item => item.name.toLowerCase().startsWith(keyword))
 
-    renderData(axtarilanmehsul)
+    // renderData(axtarilanmehsul)
+    getAllData(axtarilanmehsul)
     SearchCardData(axtarilanmehsul)
 }
 
@@ -127,4 +133,64 @@ function SearchCardData(data) {
     ).join('')
 }
 // End
+
+function CreateSlug(name) {
+    return name 
+           .toLowerCase()
+           .trim()
+           .replace(/[^\w\s-]/g, '') // Xüsusi simvolları silir
+           .replace(/[\s_-]+/g, '-') // Boşluqları tire ilə əvəz edir
+           .replace(/^-+|-+$/g, ''); // Başda və sonda tireni silir
+}
+
+// NEW RenderData Function with slug start
+function getAllData(data) {
+    fetch(Base_API) 
+    .then(res => res.json())
+
+
+        productslist.innerHTML = data.map(item => {
+            const slug = CreateSlug(item.name)
+        return `
+        <div class="product flex-auto h-full border-1 border-gray-300 rounded-xl flex flex-col items-center gap-3 p-6">
+                        <div>
+                            <img class="w-full h-[150px] object-contain overflow-hidden" src="${item.image}" alt="product photo">
+                        </div>
+                        <div class="text-sm">
+                            <div class="flex items-center flex-col gap-3">
+                                  <p class="text-gray-500">${item.category}</p>
+                                  <h5 class="text-sm">${item.name}</h5>
+                            </div>
+                            <div class="stars flex items-center gap-1 py-3">
+                                <div class="flex gap-1">
+                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+                                    <i class="fa-solid fa-star" style="color: rgb(234, 179, 8);"></i>
+                                    <i class="fa-solid fa-star-half-stroke" style="color: rgb(234, 179, 8);"></i>
+                                </div>
+                                <div class="flex gap-2 font-medium">
+                                    <p>4.5</p>
+                                    <p>(${item.commentcount})</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-5">
+                                    <div class="flex items-center justify-center gap-5">
+                                         <p>${item.price} $</p>
+                                         <button class="bg-[#17a719] text-white px-3 py-1 rounded-sm cursor-pointer">+ Add</button>
+                                    </div>
+                                    <a href="Detail.htm?s=${slug}" class="bg-[#17a719] text-xl text-white p-1 decoration-none rounded-sm">
+                                        Daha Etrafli
+                                    </a>
+                            </div>
+                        </div>
+        </div>
+        `
+    }).join('')
+    
+}
+
+getAllData();
+// End
+
 
